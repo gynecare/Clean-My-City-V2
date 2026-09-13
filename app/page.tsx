@@ -8,6 +8,42 @@ const Map = dynamic(() => import('@/components/Map'), { ssr: false });
 
 type LatLng = { lat: number; lng: number };
 
+// Phone cameras produce huge photos (often 5-10MB). We shrink and compress
+// them in the browser before sending, so uploads stay fast and under the
+// server's request size limit.
+function resizeImage(file: File, maxDim = 1280, quality = 0.7): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > height && width > maxDim) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        } else if (height >= width && height > maxDim) {
+          width = Math.round((width * maxDim) / height);
+          height = maxDim;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Canvas not supported in this browser.'));
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => reject(new Error('Could not read that image.'));
+      img.src = reader.result as string;
+    };
+    reader.onerror = () => reject(new Error('Could not read that file.'));
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function Page() {
   const [reports, setReports] = useState<WasteReport[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -60,12 +96,16 @@ export default function Page() {
     );
   }
 
-  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setPhoto(reader.result as string);
-    reader.readAsDataURL(file);
+    setError('');
+    try {
+      const resized = await resizeImage(file);
+      setPhoto(resized);
+    } catch {
+      setError("Couldn't process that photo — try a different one.");
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
