@@ -274,7 +274,12 @@ export default function Page() {
         </section>
 
         <section className="reports-section">
-          <h2>Recent reports</h2>
+          <div className="reports-header-row">
+            <h2>Recent reports</h2>
+            <a className="btn-secondary" href="/api/reports/export">
+              Download report data (CSV)
+            </a>
+          </div>
           <p className="reports-sub">
             {!loaded
               ? 'Loading reports…'
