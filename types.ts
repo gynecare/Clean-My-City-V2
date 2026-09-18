@@ -28,11 +28,11 @@ export const TYPE_LABELS: Record<WasteType, string> = {
 };
 
 export const TYPE_COLORS: Record<WasteType, string> = {
-  household: '#4C7A3D',
-  construction: '#35505C',
-  plastic: '#B5502E',
-  medical: '#A32020',
-  other: '#6B6A5C',
+  household: '#3F8F5E',
+  construction: '#D98A1F',
+  plastic: '#3B7FC4',
+  medical: '#C0392B',
+  other: '#7B4FA0',
 };
 
 // A starting list of well-known Rawalpindi localities/areas. Add or edit

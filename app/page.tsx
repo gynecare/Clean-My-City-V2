@@ -58,7 +58,9 @@ export default function Page() {
   const [mapHint, setMapHint] = useState('Click or tap anywhere on the map to mark a waste site');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [showToast, setShowToast] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     fetch('/api/reports')
@@ -143,6 +145,9 @@ export default function Page() {
       const data = await res.json();
       setReports((prev) => [data.report, ...prev]);
       closePanel();
+      setShowToast(true);
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+      toastTimer.current = setTimeout(() => setShowToast(false), 3500);
     } catch (err: any) {
       setError(err.message || 'Something went wrong sending your report.');
     } finally {
@@ -154,22 +159,119 @@ export default function Page() {
     <>
       <header className="site-header">
         <div className="stamp" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#B5502E" strokeWidth={1.8} width={28} height={28}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#1F7A46" strokeWidth={1.8} width={24} height={24}>
             <path d="M12 21s7-6.2 7-11.3A7 7 0 0 0 5 9.7C5 14.8 12 21 12 21Z" />
-            <circle cx="12" cy="9.5" r="2.4" />
+            <circle cx="12" cy="9.5" r="2.4" fill="#2FA854" stroke="none" />
           </svg>
         </div>
-        <div className="header-text">
-          <h1>Clean My City</h1>
-          <p>Mark a waste site on the map, add a few details, and send the report — no account needed.</p>
+        <div className="brand-text">
+          <div className="brand-name">
+            Clean <span className="accent">My City</span>
+          </div>
+          <div className="brand-tag">Report it. Track it. Get it cleaned.</div>
         </div>
-        <Link className="btn-secondary header-nav-link" href="/leaderboard">
-          Leaderboard
-        </Link>
+        <nav className="main-nav">
+          <a href="#map-section">Map</a>
+          <a href="#reports">Reports</a>
+          <Link href="/leaderboard">Leaderboard</Link>
+          <a href="#about">About</a>
+        </nav>
       </header>
 
+      <section className="hero">
+        <div className="hero-text">
+          <h1>
+            Report waste.
+            <br />
+            Improve your <span className="accent">neighborhood</span>.
+          </h1>
+          <p>
+            See waste in your community? Report it in seconds — no account needed. Together we can keep
+            Rawalpindi clean, one report at a time.
+          </p>
+          <div className="hero-actions">
+            <a className="btn-primary" href="#map-section">
+              Report a Waste Site
+            </a>
+            <a className="btn-outline" href="#map-section">
+              View Map
+            </a>
+          </div>
+        </div>
+        <div className="hero-illustration" aria-hidden="true">
+          <svg viewBox="0 0 300 260" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="120" width="26" height="110" fill="#BFE3CC" />
+            <rect x="46" y="90" width="30" height="140" fill="#A9D8BC" />
+            <rect x="230" y="100" width="28" height="130" fill="#A9D8BC" />
+            <rect x="264" y="130" width="26" height="100" fill="#BFE3CC" />
+            <circle cx="150" cy="130" r="70" fill="#E4F3E8" />
+            <path
+              d="M150 190s44-38 44-72a44 44 0 0 0-88 0c0 34 44 72 44 72Z"
+              fill="none"
+              stroke="#1F7A46"
+              strokeWidth="6"
+            />
+            <circle cx="150" cy="118" r="16" fill="#2FA854" />
+            <path d="M150 200c-30 0-30 20-55 20" stroke="#2FA854" strokeWidth="6" fill="none" strokeLinecap="round" />
+            <path d="M150 200c30 0 30 20 55 20" stroke="#2FA854" strokeWidth="6" fill="none" strokeLinecap="round" />
+          </svg>
+        </div>
+      </section>
+
+      <div className="stats-strip">
+        <div className="stat">
+          <span className="stat-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M6 2h9l5 5v15H6z" />
+              <path d="M9 12h6M9 16h6" />
+            </svg>
+          </span>
+          <span>
+            <span className="stat-num">{loaded ? reports.length : '—'}</span>
+            <span className="stat-label">Reports submitted</span>
+          </span>
+        </div>
+        <div className="stat">
+          <span className="stat-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 21s7-6.2 7-11.3A7 7 0 0 0 5 9.7C5 14.8 12 21 12 21Z" />
+              <circle cx="12" cy="9.5" r="2.4" />
+            </svg>
+          </span>
+          <span>
+            <span className="stat-num">
+              {loaded ? new Set(reports.map((r) => r.locality).filter(Boolean)).size : '—'}
+            </span>
+            <span className="stat-label">Areas covered</span>
+          </span>
+        </div>
+        <div className="stat">
+          <span className="stat-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="4" y="9" width="16" height="12" />
+              <path d="M9 21v-5h6v5M9 3h6v6H9z" />
+            </svg>
+          </span>
+          <span>
+            <span className="stat-num">{WASTE_TYPES.length}</span>
+            <span className="stat-label">Waste types tracked</span>
+          </span>
+        </div>
+        <div className="stat">
+          <span className="stat-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M20 6 9 17l-5-5" />
+            </svg>
+          </span>
+          <span>
+            <span className="stat-num">Free</span>
+            <span className="stat-label">No account needed</span>
+          </span>
+        </div>
+      </div>
+
       <main>
-        <section className="map-section">
+        <section className="map-section" id="map-section">
           <div className="map-toolbar">
             <span className="map-hint">{mapHint}</span>
             <button className="locate-btn" type="button" onClick={handleLocate}>
@@ -309,7 +411,7 @@ export default function Page() {
           </div>
         </section>
 
-        <section className="reports-section">
+        <section className="reports-section" id="reports">
           <div className="reports-header-row">
             <h2>Recent reports</h2>
             <a className="btn-secondary" href="/api/reports/export">
@@ -324,6 +426,15 @@ export default function Page() {
               : `${reports.length} ${reports.length === 1 ? 'report' : 'reports'} so far`}
           </p>
           <div className="reports-grid">
+            {!loaded &&
+              [1, 2, 3].map((i) => (
+                <div className="report-card skeleton-card" key={i} aria-hidden="true">
+                  <div className="skeleton-block skeleton-photo" />
+                  <div className="skeleton-block skeleton-line" style={{ width: '60%' }} />
+                  <div className="skeleton-block skeleton-line" style={{ width: '90%' }} />
+                  <div className="skeleton-block skeleton-line" style={{ width: '40%' }} />
+                </div>
+              ))}
             {loaded && reports.length === 0 && (
               <div className="empty-state">No reports yet — be the first to flag a site.</div>
             )}
@@ -337,15 +448,76 @@ export default function Page() {
                 {r.locality && <div className="locality-badge">{r.locality}</div>}
                 <p className="desc">{r.description}</p>
                 <div className="meta">
-                  {r.lat.toFixed(5)}, {r.lng.toFixed(5)}
+                  <span className="coords-text">
+                    {r.lat.toFixed(5)}, {r.lng.toFixed(5)}
+                  </span>
+                  <span>{new Date(r.createdAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}</span>
                 </div>
               </div>
             ))}
           </div>
         </section>
+
+        <div className="leaderboard-teaser">
+          <div className="leaderboard-teaser-text">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
+              <path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z" />
+              <path d="M7 6H4a2 2 0 0 0 2 4M17 6h3a2 2 0 0 1-2 4" />
+            </svg>
+            <div>
+              <h3>See which areas need the most attention</h3>
+              <p>Public rankings help put pressure where it's needed most.</p>
+            </div>
+          </div>
+          <Link href="/leaderboard">View Leaderboard →</Link>
+        </div>
+
+        <section className="about-section" id="about">
+          <h2>Why this exists</h2>
+          <p>
+            Garbage complaints often go nowhere because there&apos;s no easy way to show where the problem
+            actually is, or how many people are affected. Clean My City fixes that: anyone can mark a site
+            in seconds, no account or app download needed, and every report is public — visible on the map,
+            in the leaderboard, and exportable as a spreadsheet for local authorities to act on.
+          </p>
+          <p>
+            Your location and photos are only used to describe the report itself and are never sold or
+            shared beyond what&apos;s needed to get the site cleaned up.
+          </p>
+        </section>
       </main>
 
-      <footer>Clean My City is a community reporting tool. Reports are stored on the server.</footer>
+      <footer className="site-footer">
+        <div className="footer-inner">
+          <div className="footer-brand">
+            <div className="stamp" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#2FA854" strokeWidth={1.8} width={20} height={20}>
+                <path d="M12 21s7-6.2 7-11.3A7 7 0 0 0 5 9.7C5 14.8 12 21 12 21Z" />
+                <circle cx="12" cy="9.5" r="2.4" fill="#2FA854" stroke="none" />
+              </svg>
+            </div>
+            <div className="footer-brand-text">
+              <div className="brand-name">
+                Clean <span className="accent">My City</span>
+              </div>
+              <div className="brand-tag">Report it. Track it. Get it cleaned.</div>
+            </div>
+          </div>
+          <nav className="footer-links">
+            <a href="#map-section">Report</a>
+            <a href="#reports">Recent reports</a>
+            <Link href="/leaderboard">Leaderboard</Link>
+            <a href="#about">About</a>
+          </nav>
+        </div>
+        <div className="footer-note">Together for a cleaner city.</div>
+      </footer>
+
+      {showToast && (
+        <div className="toast" role="status">
+          Report sent — thank you for helping clean up the city.
+        </div>
+      )}
     </>
   );
 }
