@@ -280,8 +280,8 @@ footer.site-footer{
   .main-nav{ order: 3; width: 100%; overflow-x: auto; margin: 8px 0 0; justify-content: flex-start; padding-bottom: 2px; }
   .main-nav a{ flex: none; padding: 8px 12px; }
   .brand-tag{ display: none; }
-  .hero{ padding: 28px 18px; gap: 24px; }
-  .hero-illustration{ max-width: 200px; order: -1; }
+  .hero{ padding: 24px 18px; gap: 16px; }
+  .hero-illustration{ max-width: 110px; order: -1; margin: 0 auto; opacity: 0.85; }
   .map-section, .report-panel, .how-it-works, .reports-section, .about-section, .leaderboard-teaser{ margin-left:16px; margin-right:16px; }
   .stats-strip{ padding: 0 16px 24px; grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .stat{ padding: 12px; }
@@ -293,7 +293,11 @@ footer.site-footer{
   .locate-btn{ min-height: 40px; }
 }
 
+@media (max-width: 480px){
+  .hero-illustration{ display: none; }
+  .hero{ padding-top: 20px; padding-bottom: 20px; }
+}
+
 @media (max-width: 380px){
   .stats-strip{ grid-template-columns: 1fr 1fr; }
-  .hero-illustration{ max-width: 160px; }
 }
