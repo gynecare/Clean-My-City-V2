@@ -6,6 +6,7 @@ export interface WasteReport {
   lng: number;
   type: WasteType;
   description: string;
+  locality?: string | null;
   photo?: string | null;
   createdAt: string;
 }
@@ -33,3 +34,28 @@ export const TYPE_COLORS: Record<WasteType, string> = {
   medical: '#A32020',
   other: '#6B6A5C',
 };
+
+// A starting list of well-known Rawalpindi localities/areas. Add or edit
+// freely — this list only drives the dropdown and leaderboard grouping.
+export const RAWALPINDI_LOCALITIES: string[] = [
+  'Saddar',
+  'Committee Chowk',
+  'Raja Bazaar',
+  'Chaklala / Cantt',
+  'Satellite Town',
+  'Westridge',
+  'Dhoke Kashmirian',
+  'Pirwadhai',
+  'Gulzar-e-Quaid',
+  'Bahria Town',
+  'Chur Chowk',
+  'Adiala Road',
+  'Dhamial',
+  'Tench Bhatta',
+  'Waris Khan',
+  'Gawalmandi',
+  'Kartarpura',
+  'Angori Town',
+  'Airport Housing Society',
+  'Other',
+];

@@ -18,6 +18,7 @@ export async function getReports(): Promise<WasteReport[]> {
     lng: row.lng,
     type: row.type,
     description: row.description,
+    locality: row.locality ?? null,
     photo: row.photo,
     createdAt: row.created_at,
   }));
@@ -30,6 +31,7 @@ export async function addReport(report: WasteReport): Promise<void> {
     lng: report.lng,
     type: report.type,
     description: report.description,
+    locality: report.locality ?? null,
     photo: report.photo,
     created_at: report.createdAt,
   });

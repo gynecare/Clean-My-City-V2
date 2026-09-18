@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 });
   }
 
-  const { lat, lng, type, description, photo } = body ?? {};
+  const { lat, lng, type, description, locality, photo } = body ?? {};
 
   if (typeof lat !== 'number' || typeof lng !== 'number' || Number.isNaN(lat) || Number.isNaN(lng)) {
     return NextResponse.json({ error: 'Missing or invalid location.' }, { status: 400 });
@@ -26,6 +26,9 @@ export async function POST(req: NextRequest) {
   }
   if (typeof description !== 'string' || description.trim().length === 0) {
     return NextResponse.json({ error: 'Description is required.' }, { status: 400 });
+  }
+  if (locality != null && typeof locality !== 'string') {
+    return NextResponse.json({ error: 'Invalid locality.' }, { status: 400 });
   }
   if (photo && (typeof photo !== 'string' || photo.length > 6_000_000)) {
     return NextResponse.json({ error: 'Photo is missing or too large.' }, { status: 400 });
@@ -37,6 +40,7 @@ export async function POST(req: NextRequest) {
     lng,
     type: type as WasteType,
     description: description.trim().slice(0, 500),
+    locality: typeof locality === 'string' ? locality.trim().slice(0, 100) || null : null,
     photo: photo || null,
     createdAt: new Date().toISOString(),
   };
