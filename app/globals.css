@@ -148,12 +148,12 @@ main{ max-width: 1040px; margin: 0 auto; padding: 0 0 60px; }
 textarea{
   width:100%; min-height: 86px; padding: 11px 12px; border: 1px solid var(--line);
   border-radius: var(--radius); background: var(--paper); color: var(--ink); font-family: inherit;
-  font-size: 0.95rem; resize: vertical;
+  font-size: 16px; resize: vertical;
 }
 
 .locality-select, .locality-custom-input{
   width:100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius);
-  background: var(--paper); color: var(--ink); font-family: inherit; font-size: 0.95rem;
+  background: var(--paper); color: var(--ink); font-family: inherit; font-size: 16px;
 }
 .locality-custom-input{ margin-top: 8px; }
 
@@ -277,10 +277,23 @@ footer.site-footer{
 @media (max-width: 720px){
   .how-it-works{ grid-template-columns: 1fr; }
   .site-header{ padding: 14px 18px; flex-wrap: wrap; }
-  .main-nav{ order: 3; width: 100%; overflow-x: auto; margin: 8px 0 0; justify-content: flex-start; }
-  .hero{ padding: 32px 18px; }
+  .main-nav{ order: 3; width: 100%; overflow-x: auto; margin: 8px 0 0; justify-content: flex-start; padding-bottom: 2px; }
+  .main-nav a{ flex: none; padding: 8px 12px; }
+  .brand-tag{ display: none; }
+  .hero{ padding: 28px 18px; gap: 24px; }
+  .hero-illustration{ max-width: 200px; order: -1; }
   .map-section, .report-panel, .how-it-works, .reports-section, .about-section, .leaderboard-teaser{ margin-left:16px; margin-right:16px; }
-  .stats-strip{ padding: 0 16px 24px; }
-  .map-wrap{ height: 360px; }
+  .stats-strip{ padding: 0 16px 24px; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .stat{ padding: 12px; }
+  .map-wrap{ height: 340px; }
   .footer-inner{ flex-direction: column; align-items: flex-start; }
+  .leaderboard-teaser{ flex-direction: column; align-items: flex-start; }
+  .chip{ padding: 9px 14px; }
+  .btn-primary, .btn-outline, .btn-secondary{ min-height: 44px; }
+  .locate-btn{ min-height: 40px; }
+}
+
+@media (max-width: 380px){
+  .stats-strip{ grid-template-columns: 1fr 1fr; }
+  .hero-illustration{ max-width: 160px; }
 }
