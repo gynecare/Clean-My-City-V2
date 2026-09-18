@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getReports } from '@/lib/reports';
 import { TYPE_LABELS } from '@/types';
 
@@ -11,7 +11,14 @@ function escapeCsv(value: string): string {
   return needsQuotes ? `"${escaped}"` : escaped;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const providedKey = req.headers.get('x-admin-key');
+  const adminKey = process.env.ADMIN_PASSWORD;
+
+  if (!adminKey || providedKey !== adminKey) {
+    return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
+  }
+
   const reports = await getReports();
 
   const header = ['Date reported', 'Waste type', 'Description', 'Latitude', 'Longitude', 'Map link', 'Has photo'];

@@ -414,9 +414,6 @@ export default function Page() {
         <section className="reports-section" id="reports">
           <div className="reports-header-row">
             <h2>Recent reports</h2>
-            <a className="btn-secondary" href="/api/reports/export">
-              Download report data (CSV)
-            </a>
           </div>
           <p className="reports-sub">
             {!loaded
@@ -511,6 +508,11 @@ export default function Page() {
           </nav>
         </div>
         <div className="footer-note">Together for a cleaner city.</div>
+        <div className="footer-note">
+          <Link href="/admin" style={{ color: 'inherit' }}>
+            Admin
+          </Link>
+        </div>
       </footer>
 
       {showToast && (
