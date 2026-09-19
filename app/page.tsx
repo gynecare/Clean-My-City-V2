@@ -189,12 +189,7 @@ export default function Page() {
             <button className="welcome-close" aria-label="Close" onClick={dismissWelcome}>
               ×
             </button>
-            <div className="stamp" aria-hidden="true" style={{ margin: '0 auto 14px' }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="#1F7A46" strokeWidth={1.8} width={24} height={24}>
-                <path d="M12 21s7-6.2 7-11.3A7 7 0 0 0 5 9.7C5 14.8 12 21 12 21Z" />
-                <circle cx="12" cy="9.5" r="2.4" fill="#2FA854" stroke="none" />
-              </svg>
-            </div>
+            <img src="/logo-icon.png" alt="" className="stamp-img" style={{ margin: '0 auto 14px' }} />
             <h2 id="welcome-title">See waste nearby?</h2>
             <p>
               Mark it on the map in under a minute — no account needed. Every report helps build a public
@@ -213,12 +208,7 @@ export default function Page() {
       )}
 
       <header className="site-header">
-        <div className="stamp" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#1F7A46" strokeWidth={1.8} width={24} height={24}>
-            <path d="M12 21s7-6.2 7-11.3A7 7 0 0 0 5 9.7C5 14.8 12 21 12 21Z" />
-            <circle cx="12" cy="9.5" r="2.4" fill="#2FA854" stroke="none" />
-          </svg>
-        </div>
+        <img src="/logo-icon.png" alt="Clean My City logo" className="stamp-img" />
         <div className="brand-text">
           <div className="brand-name">
             Clean <span className="accent">My City</span>
@@ -253,23 +243,8 @@ export default function Page() {
             </a>
           </div>
         </div>
-        <div className="hero-illustration" aria-hidden="true">
-          <svg viewBox="0 0 300 260" xmlns="http://www.w3.org/2000/svg">
-            <rect x="10" y="120" width="26" height="110" fill="#BFE3CC" />
-            <rect x="46" y="90" width="30" height="140" fill="#A9D8BC" />
-            <rect x="230" y="100" width="28" height="130" fill="#A9D8BC" />
-            <rect x="264" y="130" width="26" height="100" fill="#BFE3CC" />
-            <circle cx="150" cy="130" r="70" fill="#E4F3E8" />
-            <path
-              d="M150 190s44-38 44-72a44 44 0 0 0-88 0c0 34 44 72 44 72Z"
-              fill="none"
-              stroke="#1F7A46"
-              strokeWidth="6"
-            />
-            <circle cx="150" cy="118" r="16" fill="#2FA854" />
-            <path d="M150 200c-30 0-30 20-55 20" stroke="#2FA854" strokeWidth="6" fill="none" strokeLinecap="round" />
-            <path d="M150 200c30 0 30 20 55 20" stroke="#2FA854" strokeWidth="6" fill="none" strokeLinecap="round" />
-          </svg>
+        <div className="hero-illustration">
+          <img src="/logo-full.jpg" alt="Clean My City" style={{ width: '100%', height: 'auto', mixBlendMode: 'multiply' }} />
         </div>
       </section>
 
@@ -542,12 +517,7 @@ export default function Page() {
       <footer className="site-footer">
         <div className="footer-inner">
           <div className="footer-brand">
-            <div className="stamp" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#2FA854" strokeWidth={1.8} width={20} height={20}>
-                <path d="M12 21s7-6.2 7-11.3A7 7 0 0 0 5 9.7C5 14.8 12 21 12 21Z" />
-                <circle cx="12" cy="9.5" r="2.4" fill="#2FA854" stroke="none" />
-              </svg>
-            </div>
+            <img src="/logo-icon.png" alt="" className="stamp-img" style={{ width: 36, height: 36 }} />
             <div className="footer-brand-text">
               <div className="brand-name">
                 Clean <span className="accent">My City</span>
@@ -561,6 +531,12 @@ export default function Page() {
             <Link href="/leaderboard">Leaderboard</Link>
             <a href="#about">About</a>
           </nav>
+          <div className="footer-contact">
+            <a href="https://wa.me/923008489597" target="_blank" rel="noopener noreferrer">
+              WhatsApp / Call: 0300-8489597
+            </a>
+            <a href="mailto:clean.my.city.pk@gmail.com">clean.my.city.pk@gmail.com</a>
+          </div>
         </div>
         <div className="footer-note">Together for a cleaner city.</div>
         <div className="footer-note">
