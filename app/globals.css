@@ -234,6 +234,27 @@ footer.site-footer{
 .footer-links a:hover{ color: #fff; }
 .footer-note{ font-size: 0.78rem; color: rgba(255,255,255,0.45); text-align:center; margin-top: 20px; font-style: italic; }
 
+.welcome-overlay{
+  position: fixed; inset: 0; background: rgba(23,38,28,0.55);
+  display:flex; align-items:center; justify-content:center; z-index: 100; padding: 20px;
+  animation: overlay-in 0.2s ease-out;
+}
+.welcome-modal{
+  background: var(--card); border-radius: var(--radius); max-width: 400px; width: 100%;
+  padding: 30px 26px 26px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); text-align:center;
+  position: relative; animation: modal-in 0.25s ease-out;
+}
+.welcome-modal h2{ font-size: 1.3rem; margin-bottom: 10px; }
+.welcome-modal p{ color: var(--ink-soft); font-size: 0.92rem; margin-bottom: 22px; }
+.welcome-actions{ display:flex; flex-direction:column; gap: 10px; }
+.welcome-close{
+  position:absolute; top: 10px; right: 14px; background:none; border:none;
+  font-size: 1.4rem; color: var(--ink-soft); cursor:pointer; line-height:1; padding: 4px 8px;
+}
+.welcome-close:hover{ color: var(--ink); }
+@keyframes overlay-in{ from{ opacity:0; } to{ opacity:1; } }
+@keyframes modal-in{ from{ opacity:0; transform: translateY(12px) scale(0.98); } to{ opacity:1; transform: translateY(0) scale(1); } }
+
 .toast{
   position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
   background: var(--leaf); color: #fff; padding: 12px 20px; border-radius: var(--radius);
@@ -250,6 +271,7 @@ footer.site-footer{
 @media (prefers-reduced-motion: reduce){
   .toast{ animation:none; }
   .skeleton-block{ animation:none; }
+  .welcome-overlay, .welcome-modal{ animation:none; }
 }
 
 .leaderboard-list{ display:flex; flex-direction:column; gap: 10px; }

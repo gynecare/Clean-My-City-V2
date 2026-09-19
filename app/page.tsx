@@ -59,8 +59,34 @@ export default function Page() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    try {
+      const alreadyShown = sessionStorage.getItem('cmc-welcome-shown');
+      if (!alreadyShown) {
+        setShowWelcome(true);
+      }
+    } catch {
+      // sessionStorage unavailable — just skip the popup rather than error out.
+    }
+  }, []);
+
+  function dismissWelcome() {
+    setShowWelcome(false);
+    try {
+      sessionStorage.setItem('cmc-welcome-shown', 'true');
+    } catch {
+      // ignore
+    }
+  }
+
+  function handleReportNowClick() {
+    dismissWelcome();
+    document.getElementById('map-section')?.scrollIntoView({ behavior: 'smooth' });
+  }
 
   useEffect(() => {
     fetch('/api/reports')
@@ -157,6 +183,35 @@ export default function Page() {
 
   return (
     <>
+      {showWelcome && (
+        <div className="welcome-overlay" role="dialog" aria-modal="true" aria-labelledby="welcome-title" onClick={dismissWelcome}>
+          <div className="welcome-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="welcome-close" aria-label="Close" onClick={dismissWelcome}>
+              ×
+            </button>
+            <div className="stamp" aria-hidden="true" style={{ margin: '0 auto 14px' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#1F7A46" strokeWidth={1.8} width={24} height={24}>
+                <path d="M12 21s7-6.2 7-11.3A7 7 0 0 0 5 9.7C5 14.8 12 21 12 21Z" />
+                <circle cx="12" cy="9.5" r="2.4" fill="#2FA854" stroke="none" />
+              </svg>
+            </div>
+            <h2 id="welcome-title">See waste nearby?</h2>
+            <p>
+              Mark it on the map in under a minute — no account needed. Every report helps build a public
+              case for getting it cleaned up.
+            </p>
+            <div className="welcome-actions">
+              <button className="btn-primary" onClick={handleReportNowClick} style={{ justifyContent: 'center' }}>
+                Report a Waste Site
+              </button>
+              <button className="btn-secondary" onClick={dismissWelcome}>
+                Maybe later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <header className="site-header">
         <div className="stamp" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="#1F7A46" strokeWidth={1.8} width={24} height={24}>
