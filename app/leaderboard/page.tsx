@@ -6,11 +6,14 @@ import Link from 'next/link';
 interface LeaderboardRow {
   locality: string;
   count: number;
+  resolved: number;
+  resolvedRate: number;
 }
 
 export default function LeaderboardPage() {
   const [rows, setRows] = useState<LeaderboardRow[]>([]);
   const [total, setTotal] = useState(0);
+  const [totalResolved, setTotalResolved] = useState(0);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -19,6 +22,7 @@ export default function LeaderboardPage() {
       .then((data) => {
         setRows(data.leaderboard ?? []);
         setTotal(data.total ?? 0);
+        setTotalResolved(data.totalResolved ?? 0);
       })
       .finally(() => setLoaded(true));
   }, []);
@@ -55,7 +59,9 @@ export default function LeaderboardPage() {
             See which areas have the most reported waste sites — public pressure helps get them cleared.
           </p>
           <p className="reports-sub">
-            {!loaded ? 'Loading…' : `${total} total ${total === 1 ? 'report' : 'reports'} across ${rows.length} area${rows.length === 1 ? '' : 's'}`}
+            {!loaded
+              ? 'Loading…'
+              : `${total} total ${total === 1 ? 'report' : 'reports'} across ${rows.length} area${rows.length === 1 ? '' : 's'} — ${totalResolved} resolved`}
           </p>
 
           {loaded && rows.length === 0 && (
@@ -71,7 +77,7 @@ export default function LeaderboardPage() {
                     <div className="leaderboard-top">
                       <span className="leaderboard-name">{row.locality}</span>
                       <span className="leaderboard-count">
-                        {row.count} {row.count === 1 ? 'report' : 'reports'}
+                        {row.count} {row.count === 1 ? 'report' : 'reports'} · {row.resolvedRate}% resolved
                       </span>
                     </div>
                     <div className="leaderboard-bar-track">
@@ -79,6 +85,7 @@ export default function LeaderboardPage() {
                         className="leaderboard-bar-fill"
                         style={{ width: `${maxCount ? (row.count / maxCount) * 100 : 0}%` }}
                       />
+                      <div className="leaderboard-bar-resolved" style={{ width: `${row.resolvedRate}%` }} />
                     </div>
                   </div>
                 </div>
