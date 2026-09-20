@@ -2,76 +2,87 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { STATUSES, STATUS_LABELS, TYPE_LABELS, type ReportStatus, type WasteReport } from '@/types';
 
 export default function AdminPage() {
   const [password, setPassword] = useState('');
   const [unlocked, setUnlocked] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [reports, setReports] = useState<WasteReport[]>([]);
   const [downloading, setDownloading] = useState(false);
+  const [savingId, setSavingId] = useState<string | null>(null);
 
   async function handleUnlock(e: React.FormEvent) {
     e.preventDefault();
     setError('');
-    // We verify by attempting a real download — if the password is wrong,
-    // the server rejects it and we show an error without ever unlocking.
-    setDownloading(true);
+    setLoading(true);
     try {
-      const res = await fetch('/api/reports/export', {
-        headers: { 'x-admin-key': password },
-      });
+      const res = await fetch('/api/reports/export', { headers: { 'x-admin-key': password } });
       if (!res.ok) {
         setError('Incorrect password.');
-        setDownloading(false);
         return;
       }
       setUnlocked(true);
-      await triggerDownload(res);
+      const listRes = await fetch('/api/reports');
+      const listData = await listRes.json();
+      setReports(listData.reports ?? []);
     } catch {
       setError('Something went wrong. Try again.');
     } finally {
-      setDownloading(false);
+      setLoading(false);
     }
   }
 
-  async function triggerDownload(res: Response) {
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `clean-my-city-reports-${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  }
-
-  async function handleDownloadAgain() {
+  async function handleDownload() {
     setDownloading(true);
     setError('');
     try {
-      const res = await fetch('/api/reports/export', {
-        headers: { 'x-admin-key': password },
-      });
+      const res = await fetch('/api/reports/export', { headers: { 'x-admin-key': password } });
       if (!res.ok) {
         setError('Session expired — enter the password again.');
         setUnlocked(false);
         return;
       }
-      await triggerDownload(res);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `clean-my-city-reports-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
     } finally {
       setDownloading(false);
+    }
+  }
+
+  async function handleStatusChange(id: string, status: ReportStatus) {
+    setSavingId(id);
+    setError('');
+    try {
+      const res = await fetch(`/api/reports/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': password },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) {
+        setError('Failed to update status — session may have expired.');
+        return;
+      }
+      setReports((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+    } catch {
+      setError('Failed to update status.');
+    } finally {
+      setSavingId(null);
     }
   }
 
   return (
     <>
       <header className="site-header">
-        <div className="stamp" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#1F7A46" strokeWidth={1.8} width={24} height={24}>
-            <path d="M12 21s7-6.2 7-11.3A7 7 0 0 0 5 9.7C5 14.8 12 21 12 21Z" />
-            <circle cx="12" cy="9.5" r="2.4" fill="#2FA854" stroke="none" />
-          </svg>
-        </div>
+        <img src="/logo-icon.png" alt="Clean My City logo" className="stamp-img" />
         <div className="brand-text">
           <div className="brand-name">
             Clean <span className="accent">My City</span>
@@ -84,41 +95,80 @@ export default function AdminPage() {
       </header>
 
       <main>
-        <section className="report-panel" style={{ maxWidth: 420, margin: '48px auto' }}>
-          <div className="ticket-head">
-            <div>
-              <h2>Admin access</h2>
-              <div className="coords">Download the full reports data as CSV</div>
+        {!unlocked ? (
+          <section className="report-panel" style={{ maxWidth: 420, margin: '48px auto' }}>
+            <div className="ticket-head">
+              <div>
+                <h2>Admin access</h2>
+                <div className="coords">Enter your password to manage reports</div>
+              </div>
             </div>
-          </div>
+            <form onSubmit={handleUnlock}>
+              <label className="field-label" htmlFor="admin-password">
+                Admin password
+              </label>
+              <input
+                id="admin-password"
+                type="password"
+                className="locality-select"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter password"
+                autoFocus
+              />
+              {error && <div className="form-error">{error}</div>}
+              <div className="panel-actions">
+                <button type="submit" className="btn-primary" disabled={loading || !password}>
+                  {loading ? 'Checking…' : 'Unlock'}
+                </button>
+              </div>
+            </form>
+          </section>
+        ) : (
+          <section className="reports-section" style={{ marginTop: 28 }}>
+            <div className="reports-header-row">
+              <h2>Manage reports</h2>
+              <button className="btn-secondary" onClick={handleDownload} disabled={downloading}>
+                {downloading ? 'Preparing…' : 'Download CSV'}
+              </button>
+            </div>
+            <p className="reports-sub">{reports.length} total reports</p>
+            {error && <div className="form-error" style={{ marginBottom: 16 }}>{error}</div>}
 
-          <form onSubmit={handleUnlock}>
-            <label className="field-label" htmlFor="admin-password">
-              Admin password
-            </label>
-            <input
-              id="admin-password"
-              type="password"
-              className="locality-select"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter password"
-              autoFocus
-            />
-            {error && <div className="form-error">{error}</div>}
-            <div className="panel-actions">
-              {unlocked ? (
-                <button type="button" className="btn-primary" onClick={handleDownloadAgain} disabled={downloading}>
-                  {downloading ? 'Preparing…' : 'Download again'}
-                </button>
-              ) : (
-                <button type="submit" className="btn-primary" disabled={downloading || !password}>
-                  {downloading ? 'Checking…' : 'Unlock & download'}
-                </button>
-              )}
+            <div className="admin-list">
+              {reports.map((r) => (
+                <div className="admin-row" key={r.id}>
+                  {r.photo && <img src={r.photo} alt="" className="admin-row-photo" />}
+                  <div className="admin-row-body">
+                    <div className="admin-row-top">
+                      <strong>{TYPE_LABELS[r.type]}</strong>
+                      {r.locality && <span className="locality-badge">{r.locality}</span>}
+                    </div>
+                    <p className="desc">{r.description}</p>
+                    <div className="meta">
+                      <span className="coords-text">
+                        {r.lat.toFixed(5)}, {r.lng.toFixed(5)}
+                      </span>
+                      <span>{new Date(r.createdAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                    </div>
+                  </div>
+                  <select
+                    className="locality-select admin-status-select"
+                    value={r.status}
+                    disabled={savingId === r.id}
+                    onChange={(e) => handleStatusChange(r.id, e.target.value as ReportStatus)}
+                  >
+                    {STATUSES.map((s) => (
+                      <option key={s} value={s}>
+                        {STATUS_LABELS[s]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ))}
             </div>
-          </form>
-        </section>
+          </section>
+        )}
       </main>
 
       <footer className="site-footer">

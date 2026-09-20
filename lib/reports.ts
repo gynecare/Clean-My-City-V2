@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient';
-import type { WasteReport } from '@/types';
+import type { ReportStatus, WasteReport } from '@/types';
 
 export async function getReports(): Promise<WasteReport[]> {
   const { data, error } = await supabase
@@ -20,6 +20,7 @@ export async function getReports(): Promise<WasteReport[]> {
     description: row.description,
     locality: row.locality ?? null,
     photo: row.photo,
+    status: (row.status as ReportStatus) ?? 'reported',
     createdAt: row.created_at,
   }));
 }
@@ -33,9 +34,17 @@ export async function addReport(report: WasteReport): Promise<void> {
     description: report.description,
     locality: report.locality ?? null,
     photo: report.photo,
+    status: report.status ?? 'reported',
     created_at: report.createdAt,
   });
 
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function updateReportStatus(id: string, status: ReportStatus): Promise<void> {
+  const { error } = await supabase.from('reports').update({ status }).eq('id', id);
   if (error) {
     throw new Error(error.message);
   }

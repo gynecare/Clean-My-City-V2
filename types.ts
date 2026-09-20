@@ -1,4 +1,5 @@
 export type WasteType = 'household' | 'construction' | 'plastic' | 'medical' | 'other';
+export type ReportStatus = 'reported' | 'in_progress' | 'resolved';
 
 export interface WasteReport {
   id: string;
@@ -8,6 +9,7 @@ export interface WasteReport {
   description: string;
   locality?: string | null;
   photo?: string | null;
+  status: ReportStatus;
   createdAt: string;
 }
 
@@ -33,6 +35,20 @@ export const TYPE_COLORS: Record<WasteType, string> = {
   plastic: '#3B7FC4',
   medical: '#C0392B',
   other: '#7B4FA0',
+};
+
+export const STATUSES: ReportStatus[] = ['reported', 'in_progress', 'resolved'];
+
+export const STATUS_LABELS: Record<ReportStatus, string> = {
+  reported: 'Reported',
+  in_progress: 'In Progress',
+  resolved: 'Resolved',
+};
+
+export const STATUS_COLORS: Record<ReportStatus, string> = {
+  reported: '#6B6A5C',
+  in_progress: '#D98A1F',
+  resolved: '#2FA854',
 };
 
 // A starting list of well-known Rawalpindi localities/areas. Add or edit

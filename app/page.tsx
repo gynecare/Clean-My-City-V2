@@ -1,9 +1,19 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { TYPE_COLORS, TYPE_LABELS, WASTE_TYPES, RAWALPINDI_LOCALITIES, type WasteReport, type WasteType } from '@/types';
+import { useSearchParams } from 'next/navigation';
+import {
+  TYPE_COLORS,
+  TYPE_LABELS,
+  WASTE_TYPES,
+  RAWALPINDI_LOCALITIES,
+  STATUS_LABELS,
+  STATUS_COLORS,
+  type WasteReport,
+  type WasteType,
+} from '@/types';
 
 const Map = dynamic(() => import('@/components/Map'), { ssr: false });
 
@@ -46,6 +56,14 @@ function resizeImage(file: File, maxDim = 1280, quality = 0.7): Promise<string> 
 }
 
 export default function Page() {
+  return (
+    <Suspense fallback={null}>
+      <PageContent />
+    </Suspense>
+  );
+}
+
+function PageContent() {
   const [reports, setReports] = useState<WasteReport[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [pendingLatLng, setPendingLatLng] = useState<LatLng | null>(null);
@@ -60,8 +78,10 @@ export default function Page() {
   const [submitting, setSubmitting] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [focusReportId, setFocusReportId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     try {
@@ -91,9 +111,24 @@ export default function Page() {
   useEffect(() => {
     fetch('/api/reports')
       .then((res) => res.json())
-      .then((data) => setReports(data.reports ?? []))
+      .then((data) => {
+        const list: WasteReport[] = data.reports ?? [];
+        setReports(list);
+        const reportId = searchParams.get('report');
+        if (reportId) {
+          const match = list.find((r) => r.id === reportId);
+          if (match) {
+            setFlyTarget({ lat: match.lat, lng: match.lng });
+            setFocusReportId(reportId);
+            setTimeout(() => {
+              document.getElementById('map-section')?.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+          }
+        }
+      })
       .catch(() => setReports([]))
       .finally(() => setLoaded(true));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function openPanelAt(lat: number, lng: number) {
@@ -313,6 +348,7 @@ export default function Page() {
               reports={reports}
               pendingLatLng={pendingLatLng}
               flyTarget={flyTarget}
+              focusReportId={focusReportId}
               onMapClick={openPanelAt}
             />
           </div>
@@ -471,6 +507,12 @@ export default function Page() {
                 <div className="type-badge">
                   <i style={{ background: TYPE_COLORS[r.type] }} />
                   {TYPE_LABELS[r.type]}
+                  <span
+                    className="status-badge"
+                    style={{ background: STATUS_COLORS[r.status] }}
+                  >
+                    {STATUS_LABELS[r.status]}
+                  </span>
                 </div>
                 {r.locality && <div className="locality-badge">{r.locality}</div>}
                 <p className="desc">{r.description}</p>

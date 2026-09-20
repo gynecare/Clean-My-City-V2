@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getReports } from '@/lib/reports';
-import { TYPE_LABELS } from '@/types';
+import { STATUS_LABELS, TYPE_LABELS } from '@/types';
 
 // Always fetch fresh data — never cache this route.
 export const dynamic = 'force-dynamic';
@@ -20,15 +20,30 @@ export async function GET(req: NextRequest) {
   }
 
   const reports = await getReports();
+  const origin = req.nextUrl.origin;
 
-  const header = ['Date reported', 'Waste type', 'Description', 'Latitude', 'Longitude', 'Map link', 'Has photo'];
+  const header = [
+    'Date reported',
+    'Status',
+    'Waste type',
+    'Description',
+    'Locality',
+    'Latitude',
+    'Longitude',
+    'Google Maps link',
+    'View in Clean My City',
+    'Has photo',
+  ];
   const rows = reports.map((r) => [
     new Date(r.createdAt).toLocaleString('en-PK', { timeZone: 'Asia/Karachi' }),
+    STATUS_LABELS[r.status] ?? 'Reported',
     TYPE_LABELS[r.type],
     r.description,
+    r.locality ?? '',
     r.lat.toFixed(6),
     r.lng.toFixed(6),
     `https://www.google.com/maps?q=${r.lat},${r.lng}`,
+    `${origin}/?report=${r.id}`,
     r.photo ? 'Yes' : 'No',
   ]);
 

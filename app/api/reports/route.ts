@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
     description: description.trim().slice(0, 500),
     locality: typeof locality === 'string' ? locality.trim().slice(0, 100) || null : null,
     photo: photo || null,
+    status: 'reported',
     createdAt: new Date().toISOString(),
   };
 
