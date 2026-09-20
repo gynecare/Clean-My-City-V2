@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { TYPE_COLORS, TYPE_LABELS, type WasteReport } from '@/types';
+import { STATUS_LABELS, TYPE_COLORS, TYPE_LABELS, type WasteReport } from '@/types';
 
 export const RAWALPINDI: [number, number] = [33.5973, 73.0479];
 
@@ -45,10 +45,19 @@ interface MapProps {
   reports: WasteReport[];
   pendingLatLng: { lat: number; lng: number } | null;
   flyTarget: { lat: number; lng: number } | null;
+  focusReportId?: string | null;
   onMapClick: (lat: number, lng: number) => void;
 }
 
-export default function Map({ reports, pendingLatLng, flyTarget, onMapClick }: MapProps) {
+export default function Map({ reports, pendingLatLng, flyTarget, focusReportId, onMapClick }: MapProps) {
+  const markerRefs = useRef<Record<string, L.Marker | null>>({});
+
+  useEffect(() => {
+    if (focusReportId && markerRefs.current[focusReportId]) {
+      markerRefs.current[focusReportId]?.openPopup();
+    }
+  }, [focusReportId, reports]);
+
   return (
     <MapContainer
       center={RAWALPINDI}
@@ -66,9 +75,16 @@ export default function Map({ reports, pendingLatLng, flyTarget, onMapClick }: M
         <Marker position={[pendingLatLng.lat, pendingLatLng.lng]} icon={pinIcon('#B5502E', true)} />
       )}
       {reports.map((r) => (
-        <Marker key={r.id} position={[r.lat, r.lng]} icon={pinIcon(TYPE_COLORS[r.type])}>
+        <Marker
+          key={r.id}
+          position={[r.lat, r.lng]}
+          icon={pinIcon(TYPE_COLORS[r.type])}
+          ref={(el) => {
+            markerRefs.current[r.id] = el;
+          }}
+        >
           <Popup>
-            <strong>{TYPE_LABELS[r.type]}</strong>
+            <strong>{TYPE_LABELS[r.type]}</strong> — {STATUS_LABELS[r.status]}
             <br />
             {r.description}
             {r.photo && (
