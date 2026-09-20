@@ -5,7 +5,7 @@ import { WASTE_TYPES, type WasteReport, type WasteType } from '@/types';
 
 export async function GET() {
   const reports = await getReports();
-  return NextResponse.json({ reports });
+  return NextResponse.json({ reports }, { headers: { 'Cache-Control': 'no-store, max-age=0' } });
 }
 
 export async function POST(req: NextRequest) {

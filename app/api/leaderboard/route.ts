@@ -26,5 +26,8 @@ export async function GET() {
 
   const totalResolved = reports.filter((r) => r.status === 'resolved').length;
 
-  return NextResponse.json({ leaderboard, total: reports.length, totalResolved });
+  return NextResponse.json(
+    { leaderboard, total: reports.length, totalResolved },
+    { headers: { 'Cache-Control': 'no-store, max-age=0' } }
+  );
 }
