@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateReportStatus, deleteReport } from '@/lib/reports';
+import { deleteReportPhoto } from '@/lib/photoStorage';
 import { STATUSES, type ReportStatus } from '@/types';
 
 // Returns true only if the request carries the correct admin password.
@@ -41,10 +42,12 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   }
 
   try {
-    const deleted = await deleteReport(params.id);
+    const { deleted, photo } = await deleteReport(params.id);
     if (!deleted) {
       return NextResponse.json({ error: 'Report not found.' }, { status: 404 });
     }
+    // Remove the photo file too (a failure here is logged, not fatal).
+    await deleteReportPhoto(photo);
   } catch (err: any) {
     console.error('DELETE /api/reports/[id] failed:', err?.message);
     return NextResponse.json({ error: 'Failed to delete report.' }, { status: 500 });

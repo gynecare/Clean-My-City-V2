@@ -61,12 +61,13 @@ export async function updateReportStatus(id: string, status: ReportStatus): Prom
   }
 }
 
-// Permanently deletes a report. Returns true if a report was deleted,
-// false if no report with that id exists.
-export async function deleteReport(id: string): Promise<boolean> {
-  const { data, error } = await supabase.from('reports').delete().eq('id', id).select('id');
+// Permanently deletes a report. Returns whether a report was deleted, and the
+// photo address it had, so the caller can remove the photo file as well.
+export async function deleteReport(id: string): Promise<{ deleted: boolean; photo: string | null }> {
+  const { data, error } = await supabase.from('reports').delete().eq('id', id).select('id, photo');
   if (error) {
     throw new Error(error.message);
   }
-  return (data?.length ?? 0) > 0;
+  const row = data?.[0];
+  return { deleted: Boolean(row), photo: row?.photo ?? null };
 }
