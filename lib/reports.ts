@@ -60,3 +60,13 @@ export async function updateReportStatus(id: string, status: ReportStatus): Prom
     throw new Error(error.message);
   }
 }
+
+// Permanently deletes a report. Returns true if a report was deleted,
+// false if no report with that id exists.
+export async function deleteReport(id: string): Promise<boolean> {
+  const { data, error } = await supabase.from('reports').delete().eq('id', id).select('id');
+  if (error) {
+    throw new Error(error.message);
+  }
+  return (data?.length ?? 0) > 0;
+}

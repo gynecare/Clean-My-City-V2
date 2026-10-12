@@ -12,6 +12,7 @@ export default function AdminPage() {
   const [reports, setReports] = useState<WasteReport[]>([]);
   const [downloading, setDownloading] = useState(false);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   async function handleUnlock(e: React.FormEvent) {
     e.preventDefault();
@@ -84,6 +85,35 @@ export default function AdminPage() {
       setError('Failed to update status.');
     } finally {
       setSavingId(null);
+    }
+  }
+
+  async function handleDelete(id: string) {
+    const confirmed = window.confirm('Delete this report permanently? This cannot be undone.');
+    if (!confirmed) return;
+
+    setDeletingId(id);
+    setError('');
+    try {
+      const res = await fetch(`/api/reports/${id}`, {
+        method: 'DELETE',
+        headers: { 'x-admin-key': password },
+      });
+      if (res.status === 401) {
+        setError('Session expired — enter the password again.');
+        setUnlocked(false);
+        return;
+      }
+      // 404 means it was already gone, so removing it from the list is correct.
+      if (!res.ok && res.status !== 404) {
+        setError('Failed to delete the report. Try again.');
+        return;
+      }
+      setReports((prev) => prev.filter((r) => r.id !== id));
+    } catch {
+      setError('Failed to delete the report.');
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -160,18 +190,37 @@ export default function AdminPage() {
                       <span>{new Date(r.createdAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                     </div>
                   </div>
-                  <select
-                    className="locality-select admin-status-select"
-                    value={r.status}
-                    disabled={savingId === r.id}
-                    onChange={(e) => handleStatusChange(r.id, e.target.value as ReportStatus)}
-                  >
-                    {STATUSES.map((s) => (
-                      <option key={s} value={s}>
-                        {STATUS_LABELS[s]}
-                      </option>
-                    ))}
-                  </select>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'stretch' }}>
+                    <select
+                      className="locality-select admin-status-select"
+                      value={r.status}
+                      disabled={savingId === r.id || deletingId === r.id}
+                      onChange={(e) => handleStatusChange(r.id, e.target.value as ReportStatus)}
+                    >
+                      {STATUSES.map((s) => (
+                        <option key={s} value={s}>
+                          {STATUS_LABELS[s]}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(r.id)}
+                      disabled={deletingId === r.id || savingId === r.id}
+                      style={{
+                        background: '#C0392B',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: 6,
+                        padding: '8px 12px',
+                        fontWeight: 600,
+                        cursor: deletingId === r.id ? 'wait' : 'pointer',
+                        opacity: deletingId === r.id ? 0.6 : 1,
+                      }}
+                    >
+                      {deletingId === r.id ? 'Deleting…' : 'Delete'}
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
