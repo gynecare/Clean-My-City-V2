@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getReports } from '@/lib/reports';
+import { getReportsOrThrow } from '@/lib/reports';
 import { STATUS_LABELS, TYPE_LABELS } from '@/types';
 
 // Always fetch fresh data — never cache this route.
@@ -19,7 +19,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
   }
 
-  const reports = await getReports();
+  let reports;
+  try {
+    reports = await getReportsOrThrow();
+  } catch (err: any) {
+    console.error('Export failed:', err?.message);
+    return NextResponse.json({ error: 'Database unavailable.' }, { status: 503 });
+  }
   const origin = req.nextUrl.origin;
 
   const header = [

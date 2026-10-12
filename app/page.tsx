@@ -66,6 +66,7 @@ export default function Page() {
 function PageContent() {
   const [reports, setReports] = useState<WasteReport[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [pendingLatLng, setPendingLatLng] = useState<LatLng | null>(null);
   const [flyTarget, setFlyTarget] = useState<LatLng | null>(null);
   const [selectedType, setSelectedType] = useState<WasteType | null>(null);
@@ -108,9 +109,14 @@ function PageContent() {
     document.getElementById('map-section')?.scrollIntoView({ behavior: 'smooth' });
   }
 
-  useEffect(() => {
+  function loadReports() {
+    setLoadError(false);
+    setLoaded(false);
     fetch('/api/reports', { cache: 'no-store' })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to load reports');
+        return res.json();
+      })
       .then((data) => {
         const list: WasteReport[] = data.reports ?? [];
         setReports(list);
@@ -126,8 +132,15 @@ function PageContent() {
           }
         }
       })
-      .catch(() => setReports([]))
+      .catch(() => {
+        setReports([]);
+        setLoadError(true);
+      })
       .finally(() => setLoaded(true));
+  }
+
+  useEffect(() => {
+    loadReports();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -292,7 +305,7 @@ function PageContent() {
             </svg>
           </span>
           <span>
-            <span className="stat-num">{loaded ? reports.length : '—'}</span>
+            <span className="stat-num">{loaded && !loadError ? reports.length : '—'}</span>
             <span className="stat-label">Reports submitted</span>
           </span>
         </div>
@@ -305,7 +318,7 @@ function PageContent() {
           </span>
           <span>
             <span className="stat-num">
-              {loaded ? new Set(reports.map((r) => r.locality).filter(Boolean)).size : '—'}
+              {loaded && !loadError ? new Set(reports.map((r) => r.locality).filter(Boolean)).size : '—'}
             </span>
             <span className="stat-label">Areas covered</span>
           </span>
@@ -336,6 +349,29 @@ function PageContent() {
       </div>
 
       <main>
+        {loadError && (
+          <div
+            className="form-error"
+            role="alert"
+            style={{
+              margin: '16px auto',
+              maxWidth: 960,
+              display: 'flex',
+              gap: 12,
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <span>
+              We can&apos;t load reports right now. The service may be temporarily down. Please try again
+              shortly.
+            </span>
+            <button type="button" className="btn-secondary" onClick={loadReports}>
+              Try again
+            </button>
+          </div>
+        )}
+
         <section className="map-section" id="map-section">
           <div className="map-toolbar">
             <span className="map-hint">{mapHint}</span>
@@ -484,6 +520,8 @@ function PageContent() {
           <p className="reports-sub">
             {!loaded
               ? 'Loading reports…'
+              : loadError
+              ? 'Reports are unavailable right now'
               : reports.length === 0
               ? 'No reports yet'
               : `${reports.length} ${reports.length === 1 ? 'report' : 'reports'} so far`}
@@ -498,7 +536,7 @@ function PageContent() {
                   <div className="skeleton-block skeleton-line" style={{ width: '40%' }} />
                 </div>
               ))}
-            {loaded && reports.length === 0 && (
+            {loaded && !loadError && reports.length === 0 && (
               <div className="empty-state">No reports yet — be the first to flag a site.</div>
             )}
             {reports.map((r) => (
@@ -581,7 +619,7 @@ function PageContent() {
           </div>
         </div>
         <div className="footer-note">Together for a cleaner city.</div>
-        <div className="footer-note">
+                <div className="footer-note">
           <Link href="/admin" style={{ color: 'inherit' }}>
             Admin
           </Link>

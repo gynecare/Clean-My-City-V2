@@ -1,15 +1,16 @@
 import { supabase } from './supabaseClient';
 import type { ReportStatus, WasteReport } from '@/types';
 
-export async function getReports(): Promise<WasteReport[]> {
+// Throws if the database can't be read, so callers can tell "no reports"
+// apart from "database unavailable".
+export async function getReportsOrThrow(): Promise<WasteReport[]> {
   const { data, error } = await supabase
     .from('reports')
     .select('*')
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Failed to load reports:', error.message);
-    return [];
+    throw new Error(error.message);
   }
 
   return (data ?? []).map((row: any) => ({
@@ -23,6 +24,16 @@ export async function getReports(): Promise<WasteReport[]> {
     status: (row.status as ReportStatus) ?? 'reported',
     createdAt: row.created_at,
   }));
+}
+
+// Old behaviour kept for any other code that already calls getReports().
+export async function getReports(): Promise<WasteReport[]> {
+  try {
+    return await getReportsOrThrow();
+  } catch (err: any) {
+    console.error('Failed to load reports:', err?.message);
+    return [];
+  }
 }
 
 export async function addReport(report: WasteReport): Promise<void> {

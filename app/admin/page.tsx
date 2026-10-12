@@ -19,12 +19,20 @@ export default function AdminPage() {
     setLoading(true);
     try {
       const res = await fetch('/api/reports/export', { headers: { 'x-admin-key': password } });
-      if (!res.ok) {
+      if (res.status === 401) {
         setError('Incorrect password.');
+        return;
+      }
+      if (!res.ok) {
+        setError('The database is unavailable right now. Try again later.');
         return;
       }
       setUnlocked(true);
       const listRes = await fetch('/api/reports');
+      if (!listRes.ok) {
+        setError('Could not load reports. The database may be down.');
+        return;
+      }
       const listData = await listRes.json();
       setReports(listData.reports ?? []);
     } catch {

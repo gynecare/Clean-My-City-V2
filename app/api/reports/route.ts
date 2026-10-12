@@ -1,11 +1,21 @@
-import { NextRequest, NextResponse } from 'next/server';
+  import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { getReports, addReport } from '@/lib/reports';
+import { getReportsOrThrow, addReport } from '@/lib/reports';
 import { WASTE_TYPES, type WasteReport, type WasteType } from '@/types';
 
+const NO_STORE = { 'Cache-Control': 'no-store, max-age=0' };
+
 export async function GET() {
-  const reports = await getReports();
-  return NextResponse.json({ reports }, { headers: { 'Cache-Control': 'no-store, max-age=0' } });
+  try {
+    const reports = await getReportsOrThrow();
+    return NextResponse.json({ reports }, { headers: NO_STORE });
+  } catch (err: any) {
+    console.error('GET /api/reports failed:', err?.message);
+    return NextResponse.json(
+      { error: 'Reports are temporarily unavailable.' },
+      { status: 503, headers: NO_STORE }
+    );
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -46,6 +56,15 @@ export async function POST(req: NextRequest) {
     createdAt: new Date().toISOString(),
   };
 
-  await addReport(report);
+  try {
+    await addReport(report);
+  } catch (err: any) {
+    console.error('POST /api/reports failed:', err?.message);
+    return NextResponse.json(
+      { error: "We couldn't save your report right now. Please try again in a little while." },
+      { status: 503 }
+    );
+  }
+
   return NextResponse.json({ report }, { status: 201 });
 }
