@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { getReportsOrThrow, addReport } from '@/lib/reports';
 import { uploadReportPhoto, deleteReportPhoto } from '@/lib/photoStorage';
+import { resolveAuthority } from '@/lib/zones';
 import { WASTE_TYPES, type WasteReport, type WasteType } from '@/types';
 
 const NO_STORE = { 'Cache-Control': 'no-store, max-age=0' };
@@ -78,8 +79,17 @@ export async function POST(req: NextRequest) {
     createdAt: new Date().toISOString(),
   };
 
+  // Work out which office owns this spot. A failure here must never block the report.
+  let authorityId: string | null = null;
   try {
-    await addReport(report);
+    const match = await resolveAuthority(report.lat, report.lng, report.locality);
+    authorityId = match?.authorityId ?? null;
+  } catch (err: any) {
+    console.error('Authority lookup failed (report saved unassigned):', err?.message);
+  }
+
+  try {
+    await addReport(report, authorityId);
   } catch (err: any) {
     console.error('POST /api/reports failed:', err?.message);
     // Don't leave an orphan photo behind if the report itself couldn't be saved.

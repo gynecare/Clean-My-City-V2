@@ -36,7 +36,8 @@ export async function getReports(): Promise<WasteReport[]> {
   }
 }
 
-export async function addReport(report: WasteReport): Promise<void> {
+// authorityId is the office this report belongs to (null = unassigned).
+export async function addReport(report: WasteReport, authorityId: string | null = null): Promise<void> {
   const { error } = await supabase.from('reports').insert({
     id: report.id,
     lat: report.lat,
@@ -47,6 +48,7 @@ export async function addReport(report: WasteReport): Promise<void> {
     photo: report.photo,
     status: report.status ?? 'reported',
     created_at: report.createdAt,
+    authority_id: authorityId,
   });
 
   if (error) {
