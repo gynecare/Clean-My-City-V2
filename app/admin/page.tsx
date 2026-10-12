@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { STATUSES, STATUS_LABELS, TYPE_LABELS, type ReportStatus, type WasteReport } from '@/types';
 
+type AuthorityOption = { id: string; name: string; level: number };
+
 export default function AdminPage() {
   const [password, setPassword] = useState('');
   const [unlocked, setUnlocked] = useState(false);
@@ -13,6 +15,10 @@ export default function AdminPage() {
   const [downloading, setDownloading] = useState(false);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [authorities, setAuthorities] = useState<AuthorityOption[]>([]);
+  const [assignments, setAssignments] = useState<Record<string, string | null>>({});
+  const [routingOk, setRoutingOk] = useState(false);
+  const [onlyUnassigned, setOnlyUnassigned] = useState(false);
 
   async function handleUnlock(e: React.FormEvent) {
     e.preventDefault();
@@ -28,7 +34,8 @@ export default function AdminPage() {
         setError('The database is unavailable right now. Try again later.');
         return;
       }
-      // Load the list first, and only then open the admin screen,
+
+      // Load everything first, and only then open the admin screen,
       // so it never flashes "0 total reports" while loading.
       const listRes = await fetch('/api/reports');
       if (!listRes.ok) {
@@ -37,6 +44,24 @@ export default function AdminPage() {
       }
       const listData = await listRes.json();
       setReports(listData.reports ?? []);
+
+      // Office information is optional: if it fails, the rest still works.
+      try {
+        const routingRes = await fetch('/api/admin/routing', { headers: { 'x-admin-key': password } });
+        if (routingRes.ok) {
+          const routingData = await routingRes.json();
+          setAuthorities(routingData.authorities ?? []);
+          setAssignments(routingData.assignments ?? {});
+          setRoutingOk(true);
+        } else {
+          setRoutingOk(false);
+          setError('Could not load office information. You can still manage statuses.');
+        }
+      } catch {
+        setRoutingOk(false);
+        setError('Could not load office information. You can still manage statuses.');
+      }
+
       setUnlocked(true);
     } catch {
       setError('Something went wrong. Try again.');
@@ -90,6 +115,33 @@ export default function AdminPage() {
     }
   }
 
+  async function handleAuthorityChange(id: string, value: string) {
+    const authorityId = value === '' ? null : value;
+    setSavingId(id);
+    setError('');
+    try {
+      const res = await fetch(`/api/reports/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': password },
+        body: JSON.stringify({ authorityId }),
+      });
+      if (res.status === 401) {
+        setError('Session expired — enter the password again.');
+        setUnlocked(false);
+        return;
+      }
+      if (!res.ok) {
+        setError('Failed to change the office. Try again.');
+        return;
+      }
+      setAssignments((prev) => ({ ...prev, [id]: authorityId }));
+    } catch {
+      setError('Failed to change the office.');
+    } finally {
+      setSavingId(null);
+    }
+  }
+
   async function handleDelete(id: string) {
     const confirmed = window.confirm('Delete this report permanently? This cannot be undone.');
     if (!confirmed) return;
@@ -118,6 +170,9 @@ export default function AdminPage() {
       setDeletingId(null);
     }
   }
+
+  const unassignedCount = reports.filter((r) => !assignments[r.id]).length;
+  const visibleReports = routingOk && onlyUnassigned ? reports.filter((r) => !assignments[r.id]) : reports;
 
   return (
     <>
@@ -172,11 +227,24 @@ export default function AdminPage() {
                 {downloading ? 'Preparing…' : 'Download CSV'}
               </button>
             </div>
-            <p className="reports-sub">{reports.length} total reports</p>
+            <p className="reports-sub">
+              {reports.length} total reports
+              {routingOk && ` · ${unassignedCount} without an office`}
+            </p>
+            {routingOk && (
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <input
+                  type="checkbox"
+                  checked={onlyUnassigned}
+                  onChange={(e) => setOnlyUnassigned(e.target.checked)}
+                />
+                Show only reports without an office
+              </label>
+            )}
             {error && <div className="form-error" style={{ marginBottom: 16 }}>{error}</div>}
 
             <div className="admin-list">
-              {reports.map((r) => (
+              {visibleReports.map((r) => (
                 <div className="admin-row" key={r.id}>
                   {r.photo && <img src={r.photo} alt="" className="admin-row-photo" />}
                   <div className="admin-row-body">
@@ -205,6 +273,22 @@ export default function AdminPage() {
                         </option>
                       ))}
                     </select>
+                    {routingOk && (
+                      <select
+                        className="locality-select admin-status-select"
+                        aria-label="Office responsible for this report"
+                        value={assignments[r.id] ?? ''}
+                        disabled={savingId === r.id || deletingId === r.id}
+                        onChange={(e) => handleAuthorityChange(r.id, e.target.value)}
+                      >
+                        <option value="">No office yet</option>
+                        {authorities.map((a) => (
+                          <option key={a.id} value={a.id}>
+                            L{a.level} · {a.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                     <button
                       type="button"
                       onClick={() => handleDelete(r.id)}

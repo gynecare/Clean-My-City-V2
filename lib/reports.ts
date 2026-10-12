@@ -1,6 +1,8 @@
 import { supabase } from './supabaseClient';
 import type { ReportStatus, WasteReport } from '@/types';
 
+export type AuthorityOption = { id: string; name: string; level: number };
+
 // Throws if the database can't be read, so callers can tell "no reports"
 // apart from "database unavailable".
 export async function getReportsOrThrow(): Promise<WasteReport[]> {
@@ -72,4 +74,45 @@ export async function deleteReport(id: string): Promise<{ deleted: boolean; phot
   }
   const row = data?.[0];
   return { deleted: Boolean(row), photo: row?.photo ?? null };
+}
+
+// The offices an admin can choose from (names and levels only, no emails).
+export async function getAuthorityOptions(): Promise<AuthorityOption[]> {
+  const { data, error } = await supabase
+    .from('authorities')
+    .select('id, name, level')
+    .eq('active', true)
+    .order('level', { ascending: true })
+    .order('name', { ascending: true });
+  if (error) {
+    throw new Error(error.message);
+  }
+  return (data ?? []) as AuthorityOption[];
+}
+
+// Which office each report is assigned to: { reportId: authorityId or null }.
+export async function getAssignments(): Promise<Record<string, string | null>> {
+  const { data, error } = await supabase.from('reports').select('id, authority_id');
+  if (error) {
+    throw new Error(error.message);
+  }
+  const map: Record<string, string | null> = {};
+  for (const row of data ?? []) {
+    map[row.id] = row.authority_id ?? null;
+  }
+  return map;
+}
+
+// Sets (or clears) a report's office by hand. Marks it manual so automatic
+// updates never overwrite it. Returns false if the report doesn't exist.
+export async function updateReportAuthority(id: string, authorityId: string | null): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('reports')
+    .update({ authority_id: authorityId, authority_manual: true })
+    .eq('id', id)
+    .select('id');
+  if (error) {
+    throw new Error(error.message);
+  }
+  return (data?.length ?? 0) > 0;
 }

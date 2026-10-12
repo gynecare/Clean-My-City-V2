@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updateReportStatus, deleteReport } from '@/lib/reports';
+import { updateReportStatus, updateReportAuthority, deleteReport } from '@/lib/reports';
 import { deleteReportPhoto } from '@/lib/photoStorage';
 import { STATUSES, type ReportStatus } from '@/types';
 
@@ -10,6 +10,8 @@ function isAdmin(req: NextRequest): boolean {
   return Boolean(adminKey) && providedKey === adminKey;
 }
 
+// PATCH body is either { status } to change the status,
+// or { authorityId } (a string, or null for unassigned) to change the office.
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   if (!isAdmin(req)) {
     return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
@@ -22,6 +24,25 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 });
   }
 
+  // Change the assigned office
+  if (body && Object.prototype.hasOwnProperty.call(body, 'authorityId')) {
+    const authorityId = body.authorityId;
+    if (authorityId !== null && (typeof authorityId !== 'string' || authorityId.length > 64)) {
+      return NextResponse.json({ error: 'Invalid office.' }, { status: 400 });
+    }
+    try {
+      const found = await updateReportAuthority(params.id, authorityId);
+      if (!found) {
+        return NextResponse.json({ error: 'Report not found.' }, { status: 404 });
+      }
+    } catch (err: any) {
+      console.error('PATCH authority failed:', err?.message);
+      return NextResponse.json({ error: 'Failed to update office.' }, { status: 500 });
+    }
+    return NextResponse.json({ ok: true });
+  }
+
+  // Change the status
   const { status } = body ?? {};
   if (typeof status !== 'string' || !STATUSES.includes(status as ReportStatus)) {
     return NextResponse.json({ error: 'Invalid status.' }, { status: 400 });
