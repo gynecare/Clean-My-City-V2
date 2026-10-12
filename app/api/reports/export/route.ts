@@ -11,6 +11,13 @@ function escapeCsv(value: string): string {
   return needsQuotes ? `"${escaped}"` : escaped;
 }
 
+// New reports store a web address; older ones stored the image itself as text.
+function photoCell(photo: string | null | undefined): string {
+  if (!photo) return '';
+  if (photo.startsWith('http')) return photo;
+  return 'Old format (no link)';
+}
+
 export async function GET(req: NextRequest) {
   const providedKey = req.headers.get('x-admin-key');
   const adminKey = process.env.ADMIN_PASSWORD;
@@ -38,7 +45,7 @@ export async function GET(req: NextRequest) {
     'Longitude',
     'Google Maps link',
     'View in Clean My City',
-    'Has photo',
+    'Photo link',
   ];
   const rows = reports.map((r) => [
     new Date(r.createdAt).toLocaleString('en-PK', { timeZone: 'Asia/Karachi' }),
@@ -50,7 +57,7 @@ export async function GET(req: NextRequest) {
     r.lng.toFixed(6),
     `https://www.google.com/maps?q=${r.lat},${r.lng}`,
     `${origin}/?report=${r.id}`,
-    r.photo ? 'Yes' : 'No',
+    photoCell(r.photo),
   ]);
 
   // Leading \uFEFF (byte-order mark) so Excel opens special characters correctly.
