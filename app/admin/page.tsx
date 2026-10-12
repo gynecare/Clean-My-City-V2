@@ -28,7 +28,8 @@ export default function AdminPage() {
         setError('The database is unavailable right now. Try again later.');
         return;
       }
-      setUnlocked(true);
+      // Load the list first, and only then open the admin screen,
+      // so it never flashes "0 total reports" while loading.
       const listRes = await fetch('/api/reports');
       if (!listRes.ok) {
         setError('Could not load reports. The database may be down.');
@@ -36,6 +37,7 @@ export default function AdminPage() {
       }
       const listData = await listRes.json();
       setReports(listData.reports ?? []);
+      setUnlocked(true);
     } catch {
       setError('Something went wrong. Try again.');
     } finally {
@@ -157,7 +159,7 @@ export default function AdminPage() {
               {error && <div className="form-error">{error}</div>}
               <div className="panel-actions">
                 <button type="submit" className="btn-primary" disabled={loading || !password}>
-                  {loading ? 'Checking…' : 'Unlock'}
+                  {loading ? 'Loading reports…' : 'Unlock'}
                 </button>
               </div>
             </form>
