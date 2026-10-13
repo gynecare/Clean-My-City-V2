@@ -612,8 +612,22 @@ function PageContent() {
             <a href="#about">About</a>
           </nav>
           <div className="footer-contact">
-            <a href="https://wa.me/923008489597" target="_blank" rel="noopener noreferrer">
-              WhatsApp / Call: 0300-8489597
+            <            <a
+              href="https://wa.me/923008489597?text=Hello%2C%20I%27m%20writing%20about%20Clean%20My%20City."
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Message Clean My City on WhatsApp"
+              style={{
+                display: 'inline-block',
+                background: '#25D366',
+                color: '#fff',
+                fontWeight: 600,
+                padding: '8px 16px',
+                borderRadius: 6,
+                textDecoration: 'none',
+              }}
+            >
+              WhatsApp us
             </a>
             <a href="mailto:clean.my.city.pk@gmail.com">clean.my.city.pk@gmail.com</a>
           </div>
