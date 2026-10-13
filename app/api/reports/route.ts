@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { getReportsOrThrow, addReport } from '@/lib/reports';
 import { uploadReportPhoto, deleteReportPhoto } from '@/lib/photoStorage';
 import { resolveAuthority } from '@/lib/zones';
+import { getClientIp, isRateLimited, recordSubmission } from '@/lib/rateLimit';
 import { WASTE_TYPES, type WasteReport, type WasteType } from '@/types';
 
 const NO_STORE = { 'Cache-Control': 'no-store, max-age=0' };
@@ -44,6 +45,15 @@ export async function POST(req: NextRequest) {
   }
   if (photo && (typeof photo !== 'string' || photo.length > 3_000_000)) {
     return NextResponse.json({ error: 'Photo is missing or too large.' }, { status: 400 });
+  }
+
+  // Too many reports from one visitor? Stop here, before any photo is uploaded.
+  const ip = getClientIp(req.headers);
+  if (await isRateLimited(ip)) {
+    return NextResponse.json(
+      { error: "You've sent a lot of reports recently. Please try again a little later." },
+      { status: 429, headers: { 'Retry-After': '3600' } }
+    );
   }
 
   const id = crypto.randomUUID();
@@ -99,6 +109,9 @@ export async function POST(req: NextRequest) {
       { status: 503 }
     );
   }
+
+  // Count this successful report towards the visitor's limit.
+  await recordSubmission(ip);
 
   return NextResponse.json({ report }, { status: 201 });
 }
