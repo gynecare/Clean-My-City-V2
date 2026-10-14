@@ -67,6 +67,7 @@ function PageContent() {
   const [reports, setReports] = useState<WasteReport[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(20);
   const [pendingLatLng, setPendingLatLng] = useState<LatLng | null>(null);
   const [flyTarget, setFlyTarget] = useState<LatLng | null>(null);
   const [selectedType, setSelectedType] = useState<WasteType | null>(null);
@@ -539,9 +540,9 @@ function PageContent() {
             {loaded && !loadError && reports.length === 0 && (
               <div className="empty-state">No reports yet — be the first to flag a site.</div>
             )}
-            {reports.map((r) => (
+            {reports.slice(0, visibleCount).map((r) => (
               <div className="report-card" key={r.id}>
-                {r.photo && <img src={r.photo} alt="" />}
+                                {r.photo && <img src={r.photo} alt="" loading="lazy" />}
                 <div className="type-badge">
                   <i style={{ background: TYPE_COLORS[r.type] }} />
                   {TYPE_LABELS[r.type]}
@@ -563,6 +564,13 @@ function PageContent() {
               </div>
             ))}
           </div>
+          {reports.length > visibleCount && (
+            <div style={{ textAlign: 'center', marginTop: 20 }}>
+              <button type="button" className="btn-secondary" onClick={() => setVisibleCount((n) => n + 20)}>
+                Load more ({reports.length - visibleCount} more)
+              </button>
+            </div>
+          )}
         </section>
 
         <div className="leaderboard-teaser">
