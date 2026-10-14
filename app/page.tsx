@@ -612,7 +612,7 @@ function PageContent() {
             <a href="#about">About</a>
           </nav>
           <div className="footer-contact">
-            <            <a
+            <a
               href="https://wa.me/923008489597?text=Hello%2C%20I%27m%20writing%20about%20Clean%20My%20City."
               target="_blank"
               rel="noopener noreferrer"
