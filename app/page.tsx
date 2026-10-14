@@ -22,7 +22,7 @@ type LatLng = { lat: number; lng: number };
 // Phone cameras produce huge photos (often 5-10MB). We shrink and compress
 // them in the browser before sending, so uploads stay fast and under the
 // server's request size limit.
-function resizeImage(file: File, maxDim = 1280, quality = 0.7): Promise<string> {
+function resizeImage(file: File, maxDim = 1024, quality = 0.6): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
