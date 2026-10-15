@@ -1,6 +1,6 @@
 # Clean My City
 
-A community tool for reporting waste sites around Rawalpindi on a map.
+A community tool for reporting waste sites around city on a map.
 
 ## Running it locally
 
