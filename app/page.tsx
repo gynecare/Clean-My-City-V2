@@ -281,7 +281,7 @@ function PageContent() {
           </h1>
           <p>
             See waste in your community? Report it in seconds — no account needed. Together we can keep
-            Rawalpindi clean, one report at a time.
+            our city clean, one report at a time.
           </p>
           <div className="hero-actions">
             <a className="btn-primary" href="#map-section">

@@ -5,7 +5,7 @@ import './globals.css';
 const siteUrl = 'https://cleanmycity.vercel.app';
 const siteTitle = 'Clean My City — report a waste site';
 const siteDescription =
-  'Mark a waste site on the map with a photo, track it until it is cleaned, and help clean up Rawalpindi. Free, no account needed.';
+  'Mark a waste site on the map with a photo, track it until it is cleaned, and help clean up your city. Free, no account needed.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -17,13 +17,13 @@ export const metadata: Metadata = {
     siteName: 'Clean My City',
     title: siteTitle,
     description: siteDescription,
-    images: [{ url: '/logo-full.jpg', alt: 'Clean My City logo' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Clean My City' }],
   },
   twitter: {
-    card: 'summary',
+    card: 'summary_large_image',
     title: siteTitle,
     description: siteDescription,
-    images: ['/logo-full.jpg'],
+    images: ['/og-image.jpg'],
   },
 };
 
