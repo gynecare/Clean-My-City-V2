@@ -2,9 +2,29 @@ import type { Metadata, Viewport } from 'next';
 import 'leaflet/dist/leaflet.css';
 import './globals.css';
 
+const siteUrl = 'https://cleanmycity.vercel.app';
+const siteTitle = 'Clean My City — report a waste site';
+const siteDescription =
+  'Mark a waste site on the map with a photo, track it until it is cleaned, and help clean up Rawalpindi. Free, no account needed.';
+
 export const metadata: Metadata = {
-  title: 'Clean My City — report a waste site',
-  description: 'Mark a waste site on the map and send a report to help clean up Rawalpindi.',
+  metadataBase: new URL(siteUrl),
+  title: siteTitle,
+  description: siteDescription,
+  openGraph: {
+    type: 'website',
+    url: siteUrl,
+    siteName: 'Clean My City',
+    title: siteTitle,
+    description: siteDescription,
+    images: [{ url: '/logo-full.jpg', alt: 'Clean My City logo' }],
+  },
+  twitter: {
+    card: 'summary',
+    title: siteTitle,
+    description: siteDescription,
+    images: ['/logo-full.jpg'],
+  },
 };
 
 export const viewport: Viewport = {
