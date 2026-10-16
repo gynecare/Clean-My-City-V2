@@ -17,13 +17,13 @@ export const metadata: Metadata = {
     siteName: 'Clean My City',
     title: siteTitle,
     description: siteDescription,
-    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Clean My City' }],
+    images: [{ url: '/og-square.jpg', width: 600, height: 600, alt: 'Clean My City' }],
   },
   twitter: {
-    card: 'summary_large_image',
+    card: 'summary',
     title: siteTitle,
     description: siteDescription,
-    images: ['/og-image.jpg'],
+    images: ['/og-square.jpg'],
   },
 };
 
